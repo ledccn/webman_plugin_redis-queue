@@ -27,7 +27,7 @@ abstract class SingleProcessJobsAbstract
      * @param int $delay
      * @return bool
      */
-    final public static function send(array $data, int $delay): bool
+    final protected static function send(array $data, int $delay): bool
     {
         return SingleProcessJobsConsumer::send($data, $delay);
     }
