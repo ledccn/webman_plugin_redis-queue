@@ -21,7 +21,7 @@ trait HasJobs
      * @param int $delay
      * @return bool
      */
-    abstract public static function send(array $data, int $delay): bool;
+    abstract protected static function send(array $data, int $delay): bool;
 
     /**
      * 异步调用当前类的execute方法
