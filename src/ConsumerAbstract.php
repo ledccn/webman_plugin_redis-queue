@@ -2,6 +2,7 @@
 
 namespace Ledc\RedisQueue;
 
+use Ledc\Redis\Client;
 use Ledc\Redis\Redis;
 use RuntimeException;
 use Throwable;
@@ -51,5 +52,18 @@ abstract class ConsumerAbstract
         } catch (Throwable $throwable) {
             throw new RuntimeException($throwable->getMessage());
         }
+    }
+
+    /**
+     * 订阅
+     * @return string 连接名，对应 config/redis-queue.php 里的连接
+     */
+    final public function subscribe(): string
+    {
+        $connection_name = static::connection();
+        $queue = static::queue();
+        $connection = Client::connection($connection_name);
+        $connection->subscribe($queue, [$this, 'consume']);
+        return $connection_name;
     }
 }

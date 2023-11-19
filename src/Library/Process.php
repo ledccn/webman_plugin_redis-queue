@@ -3,7 +3,6 @@
 namespace Ledc\RedisQueue\Library;
 
 use Closure;
-use Ledc\Redis\Client;
 use Ledc\Redis\Redis;
 use Ledc\Redis\RedisQueueClient;
 use Ledc\RedisQueue\ConsumerAbstract;
@@ -62,10 +61,7 @@ class Process
             && 0 === $worker->id
         ) {
             $consumer = new SingleProcessJobsConsumer();
-            $connection_name = SingleProcessJobsConsumer::connection();
-            $queue = SingleProcessJobsConsumer::queue();
-            $connection = Client::connection($connection_name);
-            $connection->subscribe($queue, [$consumer, 'consume']);
+            $connection_name = $consumer->subscribe();
             //处理失败队列的回调函数
             $this->failedCallback($connection_name);
         }
@@ -82,10 +78,7 @@ class Process
         ) {
             //多进程jobs
             $consumer = new JobsConsumer();
-            $connection_name = JobsConsumer::connection();
-            $queue = JobsConsumer::queue();
-            $connection = Client::connection($connection_name);
-            $connection->subscribe($queue, [$consumer, 'consume']);
+            $connection_name = $consumer->subscribe();
             //处理失败队列的回调函数
             $this->failedCallback($connection_name);
 
@@ -103,10 +96,7 @@ class Process
                     if (is_a($class, ConsumerAbstract::class, true)) {
                         /** @var ConsumerAbstract $consumer */
                         $consumer = Container::get($class);
-                        $connection_name = $consumer::connection();
-                        $queue = $consumer::queue();
-                        $connection = Client::connection($connection_name);
-                        $connection->subscribe($queue, [$consumer, 'consume']);
+                        $connection_name = $consumer->subscribe();
                         //处理失败队列的回调函数
                         $this->failedCallback($connection_name);
                     }
