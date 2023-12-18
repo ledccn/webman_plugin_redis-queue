@@ -29,24 +29,17 @@ class Process
      * 处理失败队列的回调函数
      * @var Closure|null
      */
-    protected Closure|null $failed_callback;
-    /**
-     * 启用单进程Job任务
-     * @var bool
-     */
-    protected bool $single_jobs = false;
+    protected Closure|null $failed_callback = null;
 
     /**
      * 构造函数 constructor.
      * @param string $consumer_dir 消费者目录
      * @param Closure|null $failed_callback 处理失败队列的回调函数
-     * @param bool $single_jobs 启用单进程Job任务
      */
-    public function __construct(string $consumer_dir = '', Closure $failed_callback = null, bool $single_jobs = false)
+    public function __construct(string $consumer_dir = '', Closure $failed_callback = null)
     {
         $this->_consumerDir = $consumer_dir;
         $this->failed_callback = $failed_callback;
-        $this->single_jobs = $single_jobs;
     }
 
     /**
@@ -56,50 +49,34 @@ class Process
      */
     public function onWorkerStart(Worker $worker): void
     {
-        //单进程jobs开启条件
-        if ($this->single_jobs
-            && 0 === $worker->id
-        ) {
-            $consumer = new SingleProcessJobsConsumer();
-            $connection_name = $consumer->subscribe();
-            //处理失败队列的回调函数
-            $this->failedCallback($connection_name);
-        }
-
         if (!is_dir($this->_consumerDir)) {
             echo "Consumer directory {$this->_consumerDir} not exists\r\n";
             return;
         }
 
-        //多进程jobs开启条件
-        if (1 === $worker->count
-            || 0 !== $worker->id
-            || !$this->single_jobs
-        ) {
-            //多进程jobs
-            $consumer = new JobsConsumer();
-            $connection_name = $consumer->subscribe();
-            //处理失败队列的回调函数
-            $this->failedCallback($connection_name);
+        //多进程jobs
+        $consumer = new JobsConsumer();
+        $connection_name = $consumer->subscribe();
+        //处理失败队列的回调函数
+        $this->failedCallback($connection_name);
 
-            //多进程队列
-            $dir_iterator = new RecursiveDirectoryIterator($this->_consumerDir);
-            $iterator = new RecursiveIteratorIterator($dir_iterator);
-            foreach ($iterator as $file) {
-                if (is_dir($file)) {
-                    continue;
-                }
-                $fileInfo = new SplFileInfo($file);
-                $ext = $fileInfo->getExtension();
-                if ('php' === $ext) {
-                    $class = str_replace('/', "\\", substr(substr($file, strlen(base_path())), 0, -4));
-                    if (is_a($class, ConsumerAbstract::class, true)) {
-                        /** @var ConsumerAbstract $consumer */
-                        $consumer = Container::get($class);
-                        $connection_name = $consumer->subscribe();
-                        //处理失败队列的回调函数
-                        $this->failedCallback($connection_name);
-                    }
+        //多进程队列
+        $dir_iterator = new RecursiveDirectoryIterator($this->_consumerDir);
+        $iterator = new RecursiveIteratorIterator($dir_iterator);
+        foreach ($iterator as $file) {
+            if (is_dir($file)) {
+                continue;
+            }
+            $fileInfo = new SplFileInfo($file);
+            $ext = $fileInfo->getExtension();
+            if ('php' === $ext) {
+                $class = str_replace('/', "\\", substr(substr($file, strlen(base_path())), 0, -4));
+                if (is_a($class, ConsumerAbstract::class, true)) {
+                    /** @var ConsumerAbstract $consumer */
+                    $consumer = Container::get($class);
+                    $connection_name = $consumer->subscribe();
+                    //处理失败队列的回调函数
+                    $this->failedCallback($connection_name);
                 }
             }
         }

@@ -9,9 +9,8 @@ return [
             'consumer_dir' => app_path() . '/queue/redis',
             // 处理失败队列的回调函数
             'failed_callback' => function ($package, $connection_name) {
+                //todo...
             },
-            // 启用单进程Job任务
-            'single_jobs' => true,
         ]
     ],
 ];
