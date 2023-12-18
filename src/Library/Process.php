@@ -30,6 +30,11 @@ class Process
      * @var Closure|null
      */
     protected Closure|null $failed_callback = null;
+    /**
+     * 当前进程的worker
+     * @var Worker|null
+     */
+    protected static ?Worker $worker = null;
 
     /**
      * 构造函数 constructor.
@@ -49,6 +54,7 @@ class Process
      */
     public function onWorkerStart(Worker $worker): void
     {
+        static::$worker = $worker;
         if (!is_dir($this->_consumerDir)) {
             echo "Consumer directory {$this->_consumerDir} not exists\r\n";
             return;
@@ -107,5 +113,14 @@ class Process
                 }
             });
         }
+    }
+
+    /**
+     * 获取worker.
+     * @return Worker|null
+     */
+    public static function worker(): ?Worker
+    {
+        return static::$worker;
     }
 }
