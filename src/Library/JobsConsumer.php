@@ -2,6 +2,7 @@
 
 namespace Ledc\RedisQueue\Library;
 
+use Ledc\Redis\Payload;
 use Ledc\RedisQueue\ConsumerAbstract;
 use support\Container;
 
@@ -19,10 +20,13 @@ class JobsConsumer extends ConsumerAbstract
     }
 
     /**
-     * @param $data
-     * @return void
+     * 消费方法
+     * - 消费过程中没有抛出异常和Error视为消费成功；否则消费失败,进入重试队列
+     * - 也可以通过 $payload 自定义重试间隔和重试次数
+     * @param mixed $data 数据
+     * @param Payload $payload 队列任务有效载荷
      */
-    final public function consume($data): void
+    final public function consume(mixed $data, Payload $payload): void
     {
         $job = $data['job'] ?? '';
         $data = $data['args'] ?? null;

@@ -3,6 +3,7 @@
 namespace Ledc\RedisQueue;
 
 use Ledc\Redis\Client;
+use Ledc\Redis\Payload;
 use Ledc\Redis\Redis;
 use RuntimeException;
 use Throwable;
@@ -31,11 +32,13 @@ abstract class ConsumerAbstract
 
     /**
      * 消费方法
-     *  - 消费过程中没有抛出异常和Error视为消费成功；否则消费失败,进入重试队列
-     * @param $data
+     * - 消费过程中没有抛出异常和Error视为消费成功；否则消费失败,进入重试队列
+     * - 也可以通过 $payload 自定义重试间隔和重试次数
+     * @param mixed $data 数据
+     * @param Payload $payload 队列任务有效载荷
      * @return void
      */
-    abstract public function consume($data): void;
+    abstract public function consume(mixed $data, Payload $payload): void;
 
     /**
      * 同步投递任务，异步执行

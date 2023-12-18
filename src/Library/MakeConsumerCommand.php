@@ -74,6 +74,7 @@ class MakeConsumerCommand extends Command
 
 namespace $namespace;
 
+use Ledc\\Redis\\Payload;
 use Ledc\\RedisQueue\\ConsumerAbstract;
 
 /**
@@ -100,11 +101,13 @@ class $class extends ConsumerAbstract
 
     /**
      * 消费方法
-     *  - 消费过程中没有抛出异常和Error视为消费成功；否则消费失败,进入重试队列
-     * @param \$data
+     * - 消费过程中没有抛出异常和Error视为消费成功；否则消费失败,进入重试队列
+     * - 也可以通过 \$payload 自定义重试间隔和重试次数
+     * @param mixed \$data 数据
+     * @param Payload \$payload 队列任务有效载荷
      * @return void
      */
-    public function consume(\$data): void
+    public function consume(mixed \$data, Payload \$payload): void
     {
         // 无需反序列化
         var_export(\$data);
